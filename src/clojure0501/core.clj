@@ -1,8 +1,11 @@
 (ns clojure0501.core)
 
+; M A C R O
 (defmacro foreach [[sym coll] & body]
   ;(println sym coll body)   
              ;sym=x   coll=[1 2 3]     body=((println x))
+ ;` trebako bi da se stavlja na pocetku maroa
+                            ;ovo (tj. # i ~) ima veze izgleda sa ` ili/i makroom
   `(loop [coll# ~coll]       ;~coll je vrednost koja je doneta kao coll i u nasem primeru je [1 2 3]  tj. ~x  -> vrednost promenjive x
                              ;coll# je vrednost koja se formira prilokom izvrsenja makroa i u svakom koraku je kraca za prvog clana liste
                                 ;i u prvom koraku ima vrednost ~coll
@@ -23,7 +26,9 @@
        (recur xs#))))     ;uslov za loop - smesta xs# u coll#
                           ;moglo se napisati umesto xs# coll# i radilo bi isto
 (foreach [x [1 2 3]] (println x))
-
+;1
+;2
+;3
 
 (list 100 101 102)
 ;(100 101 102)

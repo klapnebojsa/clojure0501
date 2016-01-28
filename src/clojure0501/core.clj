@@ -312,9 +312,14 @@
     (println obj19230 "I still can't believe it") 
     obj19230)
 
-
-
-
+(defmacro with
+  [name & body]
+  `(let [~name 5]
+     ~@body))
+(with bar (+ 10 bar))
+;15
+(with bar (* 10 bar))
+;50
 
 
 

@@ -197,10 +197,10 @@
 ;"Hello, Brian!"
 
 (map fn-hello ["Brian" "Not Brian"])
-;("Hello, Brian!" "Hello, Not Brian!")
-;(map macro-hello ["Brian" "Not Brian"])
+;("Hello, Brian!" "Hello, Not Brian!")     ;funkcija ce odraditi sa jednom vrednoscu. U runtime prenosi se vrednost promenjivih
+;(map macro-hello ["Brian" "Not Brian"])   ; ALI kada pokusamo da odradimo vise prolaza (sa vise vrednosti promenjivih) program ce puci. TO resavaju markroi
 ;CompilerException java.lang.RuntimeException: Can't take value of a macro: #'clojure0501.core/macro-hello, compiling:(clojure0501\core.clj:201:1)
-(map #(macro-hello %) ["Brian" "Not Brian"])
+(map #(macro-hello %) ["Brian" "Not Brian"])    ;makroi prenose u runtime argumente i bez problema ce mapirati vise prolaza sa razlicitim vrednostima
 ;("Hello, Brian!" "Hello, Not Brian!")
 
 (defmacro unhygienic
@@ -373,8 +373,8 @@
   (let [locals (set (keys &env))]
     (println "locals: " locals)
     (if (some locals (flatten expr))
-      expr                                    ;*1
-      (do                                     ;*2
+      expr                                    ;*1     then
+      (do                                     ;*2     else
         (println "Precomputing: " expr)
         (list `quote (eval expr))))))         ;*3
 #_(defn f
@@ -407,9 +407,8 @@
 ;locals:  #{x}
 ;(inc x)
 
-
-
-
+(map deref [(agent {:c 42}) (atom 12) (ref "http://clojure.org") (var +)])
+;({:c 42} 12 "http://clojure.org" #<core$_PLUS_ clojure.core$_PLUS_@10d88793>)
 
 
 

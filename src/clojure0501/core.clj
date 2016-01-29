@@ -361,29 +361,58 @@
 (defmacro spy-env []
   (let [ks (keys &env)]
     `(prn (zipmap '~ks [~@ks]))))
-(let [x 1 y 2]
-  (spy-env)
-  (+ x y))
+#_(let [x 1 y 2]
+   (spy-env)
+   (+ x y))
 ;{x 1, y 2}
 ;3
 
 (defmacro simplify
   [expr]
+  (println "expr: " expr)
   (let [locals (set (keys &env))]
     (println "locals: " locals)
     (if (some locals (flatten expr))
-      expr
-      (do
+      expr                                    ;*1
+      (do                                     ;*2
         (println "Precomputing: " expr)
-        (list `quote (eval expr))))))
-(defn f
-  [a b c]
-  (+ a b c (simplify (apply + (range 5e7)))))      ;(apply + (range 5e7))  zbir prvih 5*10na7-mu brojeva
+        (list `quote (eval expr))))))         ;*3
+#_(defn f
+    [a b c]
+    (+ a b c (simplify (apply + (range 5e7)))))      ;(apply + (range 5e7))  zbir prvih 5*10na7-mu brojeva
                                                    ;i na sve to se jos doda zbir a b c tj 1+2+3=6
-(f 1 2 3)
-;{x 1, y 2}
-;[locals:  #{a c b}
+;(time (f 1 2 3))
+;expr:  (apply + (range 5.0E7))
+;locals:  #{a c b}
 ;Precomputing:  (apply + (range 5.0E7))
+;"Elapsed time: 0.05724 msecs"
 ;1249999975000006
+
+#_(defn f'
+  [a b c]
+  (simplify (apply + a b c (range 5e7))))
+;(time (f' 1 2 3))
+;expr:  (apply + a b c (range 5.0E7))
+;locals:  #{a c b}
+;"Elapsed time: 1662.401059 msecs"
+;1249999975000006
+
+(@#'simplify nil {} '(inc 1))
+;expr:  (inc 1)
+;locals:  #{}
+;Precomputing:  (inc 1)
+;(quote 2)
+(@#'simplify nil {'x nil} '(inc x))
+;expr:  (inc x)
+;locals:  #{x}
+;(inc x)
+
+
+
+
+
+
+
+
 
 

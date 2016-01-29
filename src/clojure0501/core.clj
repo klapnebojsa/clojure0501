@@ -290,21 +290,21 @@
                                                ;izvrsavamo komandu u args-println "I still can't believe it"     -druga komanda
        ~obj)))                      ;ispisujemo donetu vrednost promenjive obj
 
-(our-doto "It works"
+#_(our-doto "It works"
           (println "I can't believe it")
           (println "I still can't believe it"))
 #_(It works I can't believe it
    It works I still can't believe it
    "It works")
 
-(macroexpand-1 '(our-doto "It works"
+#_(macroexpand-1 '(our-doto "It works"
                           (println "I can't believe it")
                           (println "I still can't believe it")))
 #_(clojure.core/let [obj18855 "It works"] 
     (println obj18855 "I can't believe it") 
     (println obj18855 "I still can't believe it") 
     obj18855)
-(macroexpand '(our-doto "It works"
+#_(macroexpand '(our-doto "It works"
                         (println "I can't believe it")
                         (println "I still can't believe it")))
 #_(let* [obj19230 "It works"] 
@@ -321,6 +321,69 @@
 (with bar (* 10 bar))
 ;50
 
+(defmacro spy [x]
+  `(do
+     (println "spied" '~x ~x)    ;'~x -doneta vrednost (tj doneta tekstualna komanda)
+                                 ;~x - izvrsava donetu komandu u polju x
+     ~x))                        ;~x - ponovo izvrsava donetu komandu x    TU NASTAJE PROBLEM I ZATO IMAMO DVE RAZLICITE VREDNOSTI IZLAZA
+;(spy 2)
+;spied 2 2
+;2
+;(spy (rand-int 10))
+;spied (rand-int 10) 4
+;0
 
+(macroexpand-1 '(spy (rand-int 10)))
+#_((do (clojure.core/println "spied" (quote (rand-int 10)) (rand-int 10)) 
+     (rand-int 10)))
+
+(defmacro spy [x]
+  `(let [x# ~x]                   ;lokalnoj promenjivoj x# dodeljujemo vrednost izvrsenja donete komande
+     (println "spied" '~x x#)     ;ispisujemo denoetu komandu i vrednosr koja je vec izvrsena
+     x#))                         ;ispisujemo vrednost koja je vec izracunata i dodeljena lokalnoj promenjivoj x#
+;(spy (rand-int 10))
+;spied (rand-int 10) 7
+;7
+(macroexpand-1 '(spy (rand-int 10)))
+#_((clojure.core/let [x__10937__auto__ (rand-int 10)] 
+     (clojure.core/println "spied" (quote (rand-int 10)) x__10937__auto__) 
+     x__10937__auto__))
+
+(defn spy-helper [expr value]         ;value je dolazna vrednost iz makroa tako da je ona u jednom prolazu vec izracunata i konstantna
+  (println "spy-helper" expr value)
+  value)
+(defmacro spy [x]
+  `(spy-helper '~x ~x))   ;u ovom koraku racunamo vrednost i saljemo je u funkciju.
+;(spy (rand-int 10))
+;spy-helper (rand-int 10) 7
+;7
+
+(defmacro spy-env []
+  (let [ks (keys &env)]
+    `(prn (zipmap '~ks [~@ks]))))
+(let [x 1 y 2]
+  (spy-env)
+  (+ x y))
+;{x 1, y 2}
+;3
+
+(defmacro simplify
+  [expr]
+  (let [locals (set (keys &env))]
+    (println "locals: " locals)
+    (if (some locals (flatten expr))
+      expr
+      (do
+        (println "Precomputing: " expr)
+        (list `quote (eval expr))))))
+(defn f
+  [a b c]
+  (+ a b c (simplify (apply + (range 5e7)))))      ;(apply + (range 5e7))  zbir prvih 5*10na7-mu brojeva
+                                                   ;i na sve to se jos doda zbir a b c tj 1+2+3=6
+(f 1 2 3)
+;{x 1, y 2}
+;[locals:  #{a c b}
+;Precomputing:  (apply + (range 5.0E7))
+;1249999975000006
 
 

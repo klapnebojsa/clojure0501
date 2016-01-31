@@ -397,18 +397,63 @@
 ;"Elapsed time: 1662.401059 msecs"
 ;1249999975000006
 
-(@#'simplify nil {} '(inc 1))
+;(@#'simplify nil {} '(inc 1))
 ;expr:  (inc 1)
 ;locals:  #{}
 ;Precomputing:  (inc 1)
 ;(quote 2)
-(@#'simplify nil {'x nil} '(inc x))
+
+;(@#'simplify nil {'x nil} '(inc x))
 ;expr:  (inc x)
 ;locals:  #{x}
 ;(inc x)
 
 (map deref [(agent {:c 42}) (atom 12) (ref "http://clojure.org") (var +)])
 ;({:c 42} 12 "http://clojure.org" #<core$_PLUS_ clojure.core$_PLUS_@10d88793>)
+
+;(@#'simplify nil {} '(inc 1))       ;*1
+;expr:  (inc 1)
+;locals:  #{}
+;Precomputing:  (inc 1)
+;(quote 2)
+
+;(@#'simplify nil {'x nil} '(inc x))
+;expr:  (inc x)
+;locals:  #{x}
+;(inc x)
+
+(defmacro ontology
+  [& triples]
+  (every? #(or (== 3 (count %))
+               (throw (IllegalArgumentException.
+                        "All triples provided as arguments must have 3 elements")))
+          triples)
+  ;; build and emit pre-processed ontology here...
+)
+
+;(ontology ["Boston" :capital-of])
+;CompilerException java.lang.IllegalArgumentException: All triples provided as arguments must have 3 elements, compiling:(clojure0501\core.clj:432:2) 
+
+(defmacro ontology
+  [& triples]
+  (every? #(or (== 3 (count %))    ;% je doneta vrednost triples
+               (throw (IllegalArgumentException.
+                        (format "`%s` provided to `%s` on line %s has < 3 elements"
+                                %                              ;*1        u okviru format prvo '%s'
+                                (first &form)                  ;*2        u okviru format drugo '%s'
+                                (-> &form meta :line)))))      ;*3        u okviru komande format trece %s
+          triples)
+  ;; ...
+)
+
+(ontology ["Boston" :capital-of])
+;CompilerException java.lang.IllegalArgumentException: `["Boston" :capital-of]` provided to `ontology` on line 449 has < 3 elements, compiling:(clojure0501\core.clj:447:2)
+
+
+
+
+
+
 
 
 
